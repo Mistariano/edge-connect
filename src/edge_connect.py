@@ -75,7 +75,7 @@ class EdgeConnect():
         train_loader = DataLoader(
             dataset=self.train_dataset,
             batch_size=self.config.BATCH_SIZE,
-            num_workers=4,
+            num_workers=0,
             drop_last=True,
             shuffle=True
         )
@@ -315,8 +315,16 @@ class EdgeConnect():
 
             # inpaint model
             elif model == 2:
-                outputs = self.inpaint_model(images, edges, masks)
-                outputs_merged = (outputs * masks) + (images * (1 - masks))
+                masks = torch.zeros(images.shape).cuda()
+                # outputs = self.inpaint_model(images, edges, masks)
+                images_ = images.clone()
+                print(images_.max(), images_.min())
+                images_[images_<0.5]=0.
+                images_[images_>=0.5]=1.
+                images_ = 1 - images_[:, :1, ...]
+                outputs = self.inpaint_model(images, images_, masks)
+                #outputs_merged = (outputs * masks) + (images * (1 - masks))
+                outputs_merged = outputs
 
             # inpaint with edge model / joint model
             else:
@@ -330,13 +338,16 @@ class EdgeConnect():
 
             imsave(output, path)
 
+            print(self.debug)
             if self.debug:
                 edges = self.postprocess(1 - edges)[0]
                 masked = self.postprocess(images * (1 - masks) + masks)[0]
+                images_ = self.postprocess(images_)[0]
                 fname, fext = name.split('.')
 
-                imsave(edges, os.path.join(self.results_path, fname + '_edge.' + fext))
-                imsave(masked, os.path.join(self.results_path, fname + '_masked.' + fext))
+                # imsave(edges, os.path.join(self.results_path, fname + '_edge.' + fext))
+                # imsave(masked, os.path.join(self.results_path, fname + '_masked.' + fext))
+                imsave(images_, os.path.join(self.results_path, fname + '_edge.' + fext))
 
         print('\nEnd test....')
 

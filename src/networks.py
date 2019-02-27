@@ -36,12 +36,12 @@ class BaseNetwork(nn.Module):
 
 
 class InpaintGenerator(BaseNetwork):
-    def __init__(self, residual_blocks=8, init_weights=True):
+    def __init__(self, residual_blocks=8, init_weights=True, in_channels=4):
         super(InpaintGenerator, self).__init__()
 
         self.encoder = nn.Sequential(
             nn.ReflectionPad2d(3),
-            nn.Conv2d(in_channels=4, out_channels=64, kernel_size=7, padding=0),
+            nn.Conv2d(in_channels=in_channels, out_channels=64, kernel_size=7, padding=0),
             nn.InstanceNorm2d(64, track_running_stats=False),
             nn.ReLU(True),
 

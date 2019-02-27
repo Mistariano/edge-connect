@@ -1,0 +1,1 @@
+python .\test.py --checkpoints .\checkpoints\blouse\ --model 2 --input D:\Projects\fengru\edge-connect\data

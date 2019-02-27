@@ -33,7 +33,7 @@ def main(mode=None):
 
 
     # set cv2 running threads to 1 (prevents deadlocks with pytorch dataloader)
-    cv2.setNumThreads(0)
+    cv2.setNumThreads(1)
 
 
     # initialize random seed
@@ -108,7 +108,7 @@ def load_config(mode=None):
     elif mode == 2:
         config.MODE = 2
         config.MODEL = args.model if args.model is not None else 3
-        config.INPUT_SIZE = 0
+        # config.INPUT_SIZE = 0
 
         if args.input is not None:
             config.TEST_FLIST = args.input

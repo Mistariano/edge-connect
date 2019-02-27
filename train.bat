@@ -1,0 +1,1 @@
+python .\train.py --checkpoints .\checkpoints\blouse\ --model 2

@@ -48,11 +48,11 @@ class BaseModel(nn.Module):
         torch.save({
             'iteration': self.iteration,
             'generator': self.generator.state_dict()
-        }, self.gen_weights_path)
+        }, self.gen_weights_path+str(self.iteration))
 
         torch.save({
             'discriminator': self.discriminator.state_dict()
-        }, self.dis_weights_path)
+        }, self.dis_weights_path+str(self.iteration))
 
 
 class EdgeModel(BaseModel):
@@ -159,8 +159,8 @@ class InpaintingModel(BaseModel):
 
         # generator input: [rgb(3) + edge(1)]
         # discriminator input: [rgb(3)]
-        generator = InpaintGenerator()
-        discriminator = Discriminator(in_channels=3, use_sigmoid=config.GAN_LOSS != 'hinge')
+        generator = InpaintGenerator(in_channels=1)
+        discriminator = Discriminator(in_channels=4, use_sigmoid=config.GAN_LOSS != 'hinge')
         if len(config.GPU) > 1:
             generator = nn.DataParallel(generator, config.GPU)
             discriminator = nn.DataParallel(discriminator , config.GPU)
@@ -205,8 +205,9 @@ class InpaintingModel(BaseModel):
 
 
         # discriminator loss
-        dis_input_real = images
-        dis_input_fake = outputs.detach()
+        dis_input_real = torch.cat([images, edges], dim=1)
+        dis_input_fake = torch.cat([outputs.detach(), edges], dim=1)
+        # print(dis_input_real.shape, dis_input_fake.shape)
         dis_real, _ = self.discriminator(dis_input_real)                    # in: [rgb(3)]
         dis_fake, _ = self.discriminator(dis_input_fake)                    # in: [rgb(3)]
         dis_real_loss = self.adversarial_loss(dis_real, True, True)
@@ -215,7 +216,7 @@ class InpaintingModel(BaseModel):
 
 
         # generator adversarial loss
-        gen_input_fake = outputs
+        gen_input_fake = torch.cat([outputs, edges], dim=1)
         gen_fake, _ = self.discriminator(gen_input_fake)                    # in: [rgb(3)]
         gen_gan_loss = self.adversarial_loss(gen_fake, True, False) * self.config.INPAINT_ADV_LOSS_WEIGHT
         gen_loss += gen_gan_loss
@@ -250,9 +251,12 @@ class InpaintingModel(BaseModel):
         return outputs, gen_loss, dis_loss, logs
 
     def forward(self, images, edges, masks):
-        images_masked = (images * (1 - masks).float()) + masks
-        inputs = torch.cat((images_masked, edges), dim=1)
-        outputs = self.generator(inputs)                                    # in: [rgb(3) + edge(1)]
+        #images_masked = (images * (1 - masks).float()) + masks
+        #images_masked = torch.rand(images.shape).cuda()
+        
+        #inputs = torch.cat((images_masked, edges), dim=1)
+        #outputs = self.generator(inputs)                                    # in: [rgb(3) + edge(1)]
+        outputs = self.generator(edges)
         return outputs
 
     def backward(self, gen_loss = None, dis_loss = None):
