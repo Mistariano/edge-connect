@@ -1,1 +1,1 @@
-python .\train.py --checkpoints .\checkpoints\blouse\ --model 2
+python .\train.py --checkpoints .\checkpoints\blouse_128\ --model 2
