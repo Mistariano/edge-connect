@@ -1,4 +1,6 @@
-checkpoints
+# checkpoints
+*.pth
+data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -106,5 +108,5 @@ ENV/
 # custom
 .todo
 results
-checkpoints
+#checkpoints
 datasets
